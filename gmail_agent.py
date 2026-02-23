@@ -160,7 +160,7 @@ class OpenRouterModel(OpenAIModel):
 gmail_agent = Agent(
     model="openai:gpt-4",  # Use a standard model name that pydantic_ai recognizes
     deps_type=GmailDependencies,
-    result_type=GmailResult,
+    output_type=GmailResult,
     system_prompt=(
         "You are Sofia, an AI assistant managing Gmail accounts. "
         "Your tasks are to: "
