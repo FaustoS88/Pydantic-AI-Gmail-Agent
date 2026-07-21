@@ -1,0 +1,17 @@
+# Pydantic AI v2
+pydantic-ai>=2.0.0
+
+# Gmail API
+google-api-python-client>=2.100.0
+google-auth>=2.23.0
+google-auth-oauthlib>=1.1.0
+google-auth-httplib2>=0.1.1
+
+# HTTP client (used by Gmail API under the hood)
+httpx>=0.26.0
+
+# Configuration
+python-dotenv>=1.0.1
+
+# Data validation
+pydantic>=2.6.0
