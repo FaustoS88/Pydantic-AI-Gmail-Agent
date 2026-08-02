@@ -106,31 +106,6 @@ pytest tests/
 
 ## 📜 License
 
+AGPL-3.0-or-later — see [`LICENSE`](LICENSE).
+
 Copyright © 2025–2026 Fausto Saccoccio.
-
-This project is licensed under the **GNU Affero General Public License v3.0 or later
-(AGPL-3.0-or-later)**. The full text is in [`LICENSE`](LICENSE).
-
-**What this means in practice:**
-
-| You want to… | Allowed? |
-|---|---|
-| Run it on your own inbox, study it, modify it | ✅ Yes, freely |
-| Fork it and publish your changes | ✅ Yes — **under AGPL-3.0, with source** |
-| Use it inside a closed-source product | ❌ Not without a commercial license |
-| Offer it (or a derivative) as a hosted service | ❌ Not unless you publish your **full** modified source to every user of that service (§13) |
-
-The AGPL's network clause (§13) is the key term: if you run a modified version of this
-agent as a service that other people interact with over a network, you must offer those
-users the complete corresponding source code of your modified version. Making it
-closed-source, or wrapping it in a proprietary SaaS, is not permitted.
-
-### 💼 Commercial licensing
-
-I am the sole copyright holder, so I can license this code under different terms.
-If the AGPL's copyleft obligations don't work for your business — for example, you want
-to build on this in a proprietary product or hosted service without publishing your
-source — a **separate commercial license is available**.
-
-Open an issue or reach out via [github.com/FaustoS88](https://github.com/FaustoS88) to
-discuss terms.
