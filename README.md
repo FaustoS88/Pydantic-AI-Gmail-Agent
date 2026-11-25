@@ -10,13 +10,13 @@ Unlike traditional linear pipelines that call LLMs as step-by-step helper functi
 
 - **True Agentic Control**: `gmail_agent.run()` orchestrates tool calls, reasoning loops, and structured output. No manual tool invocation or dummy context hacks.
 - **Pydantic AI v2 Capability Architecture**:
-  - `gmail_tools`: 6 atomic Gmail actions (`fetch_starred_emails`, `get_thread_context`, `create_reply_draft`, `send_reply`, `remove_star`, `archive_unwanted`).
+  - `gmail_tools`: 6 atomic Gmail actions (`fetch_starred_emails`, `get_thread_context`, `create_reply_draft`, `send_reply`, `remove_star`, `archive_unwanted`). `send_reply` is registered only in `auto` mode.
   - `sofia_persona`: Persona instructions for warm, professional, language-matching email generation.
   - `email_memory`: Contextual thread awareness instructions (replaces 400+ lines of fragile regex extraction).
 - **Thinking Capability**: Integrated `Thinking(effort="high")` for extended reasoning across complex email threads.
 - **Safe Archiving**: Unwanted spam/promotions are archived (moved to All Mail) rather than permanently deleted.
 - **Token Management**: Automatic OAuth token refresh in `load_credentials()` and `get_tokens.py`.
-- **Security & Prompt Guard**: Explicit prompt injection protection enforcing email content as untrusted data.
+- **Security & Prompt Guard**: In `draft` mode, the default, the send tool does not exist: `send_reply` is registered only with `OPERATION_MODE=auto`, so no email can make the agent send mail. Draft mode is not read-only: the agent still creates drafts, removes stars and runs `archive_unwanted`. The prompt also tells the model to treat email content as untrusted data; that is an instruction, not a block, so `auto` is for mailboxes whose senders you trust.
 
 ---
 
@@ -58,7 +58,7 @@ Pydantic-AI-Gmail-Agent/
    Edit `.env`:
    ```env
    MY_OPENROUTER_API_KEY=your_openrouter_api_key_here
-   OPERATION_MODE=draft   # "draft" (creates drafts for review) or "auto" (sends directly)
+   OPERATION_MODE=draft   # "draft" (default: drafts for review, no send tool) or "auto" (adds send_reply, sends directly)
    ```
 
 3. **Set Up Google OAuth Credentials**:

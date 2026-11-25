@@ -3,8 +3,8 @@
 """
 gmail_tools.py — All Gmail API actions as a single Pydantic AI v2 Capability.
 
-6 clean tools, all registered on one Capability, all using
-shared helpers from gmail_utils.py.
+6 clean tools on one Capability, all using shared helpers from
+gmail_utils.py. send_reply is registered only in auto mode.
 
 """
 
@@ -17,7 +17,7 @@ from typing import Any
 from pydantic_ai import RunContext
 from pydantic_ai.capabilities import Capability
 
-from config import MAX_STARRED_EMAILS
+from config import MAX_STARRED_EMAILS, OPERATION_MODE
 from gmail_utils import (
     build_reply_raw,
     extract_email_content,
@@ -26,6 +26,9 @@ from gmail_utils import (
 )
 
 logger = logging.getLogger(__name__)
+
+SEND_ENABLED = OPERATION_MODE == "auto"
+REPLY_TOOLS = "create_reply_draft or send_reply" if SEND_ENABLED else "create_reply_draft"
 
 gmail_tools = Capability(
     id="gmail-tools",
@@ -40,7 +43,7 @@ gmail_tools = Capability(
         "(they already replied).\n"
         "4. Skip spam and promotional emails.\n"
         "5. Generate a reply yourself (using your persona instructions), "
-        "then call create_reply_draft or send_reply with the reply text.\n"
+        f"then call {REPLY_TOOLS} with the reply text.\n"
         "6. Call remove_star after processing each email to prevent "
         "duplicate processing on the next run.\n"
         "7. Call archive_unwanted at the end to clean up spam/promotions.\n\n"
@@ -160,7 +163,6 @@ async def create_reply_draft(ctx: RunContext, message_id: str, reply_content: st
     return f"Draft {draft['id']} created successfully. Review it before sending."
 
 
-@gmail_tools.tool
 async def send_reply(ctx: RunContext, message_id: str, reply_content: str) -> str:
     """Send a reply directly to the specified email message.
 
@@ -187,6 +189,11 @@ async def send_reply(ctx: RunContext, message_id: str, reply_content: str) -> st
     sent = await asyncio.to_thread(_send)
     logger.info("Reply sent: %s", sent["id"])
     return f"Reply sent successfully (message ID: {sent['id']})."
+
+
+# In draft mode the model never sees a send tool, whatever an email asks.
+if SEND_ENABLED:
+    gmail_tools.tool(send_reply)
 
 
 @gmail_tools.tool
