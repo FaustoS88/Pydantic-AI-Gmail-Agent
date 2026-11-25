@@ -57,7 +57,7 @@ class GmailResult(BaseModel):
         description="Number of replies created (drafts or sent)"
     )
     emails_archived: int = Field(
-        description="Number of spam/promotional emails archived"
+        description="Number of promotional emails archived"
     )
     summary: str = Field(
         description="Brief human-readable summary of what was done"
@@ -169,8 +169,8 @@ async def main():
         f"4. For emails that need a reply: read the thread context, "
         f"then generate a helpful, comprehensive reply and {action}.\n"
         f"5. Remove the star after processing each email.\n\n"
-        f"After processing all starred emails, archive spam and "
-        f"promotional emails.\n\n"
+        f"After processing all starred emails, archive the "
+        f"promotional emails left in the inbox.\n\n"
         f"Produce a summary of everything you did."
     )
 
