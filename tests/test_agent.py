@@ -5,6 +5,11 @@
 from __future__ import annotations
 
 import inspect
+import json
+import os
+import subprocess
+import sys
+from pathlib import Path
 from unittest.mock import MagicMock
 import pytest
 
@@ -55,3 +60,61 @@ class TestAgentCapabilities:
     def test_agent_deps_type(self):
         deps = GmailDependencies(service=MagicMock(), user_email="test@example.com")
         assert deps.user_email == "test@example.com"
+
+
+_MODEL_VIEW = """
+import asyncio, json
+from unittest.mock import MagicMock
+import dotenv
+dotenv.load_dotenv = lambda *a, **k: False  # a local .env must not set the mode
+from pydantic_ai.messages import ModelResponse, ToolCallPart
+from pydantic_ai.models.function import FunctionModel
+from gmail_agent import GmailDependencies, gmail_agent
+
+seen = {}
+
+def model(messages, info):
+    seen["tools"] = sorted(t.name for t in info.function_tools)
+    seen["instructions"] = messages[-1].instructions or ""
+    args = {"processed_emails": 0, "replies_created": 0, "emails_archived": 0, "summary": ""}
+    return ModelResponse(parts=[ToolCallPart(info.output_tools[0].name, args)])
+
+async def main():
+    deps = GmailDependencies(service=MagicMock(), user_email="me@example.com")
+    with gmail_agent.override(model=FunctionModel(model)):
+        await gmail_agent.run("Process my starred emails.", deps=deps)
+
+asyncio.run(main())
+print(json.dumps(seen))
+"""
+
+
+def _model_view_in_mode(mode: str | None) -> dict:
+    """Tools and instructions the model receives, from a fresh interpreter since the mode is read at import time."""
+    env = {k: v for k, v in os.environ.items() if k != "OPERATION_MODE"}
+    if mode is not None:
+        env["OPERATION_MODE"] = mode
+    out = subprocess.run(
+        [sys.executable, "-c", _MODEL_VIEW],
+        cwd=Path(__file__).resolve().parent.parent,
+        env=env,
+        capture_output=True,
+        text=True,
+        check=True,
+    )
+    return json.loads(out.stdout.splitlines()[-1])
+
+
+class TestOperationMode:
+    @pytest.mark.parametrize("mode", [None, "draft"])
+    def test_draft_mode_has_no_send_tool(self, mode):
+        res = _model_view_in_mode(mode)
+        assert "create_reply_draft" in res["tools"]
+        assert "create_reply_draft" in res["instructions"]
+        assert "send_reply" not in res["tools"]
+        assert "send_reply" not in res["instructions"]
+
+    def test_auto_mode_has_send_tool(self):
+        res = _model_view_in_mode("auto")
+        assert "send_reply" in res["tools"]
+        assert "send_reply" in res["instructions"]
