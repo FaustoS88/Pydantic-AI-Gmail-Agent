@@ -14,7 +14,7 @@ Unlike traditional linear pipelines that call LLMs as step-by-step helper functi
   - `sofia_persona`: Persona instructions for warm, professional, language-matching email generation.
   - `email_memory`: Contextual thread awareness instructions (replaces 400+ lines of fragile regex extraction).
 - **Thinking Capability**: Integrated `Thinking(effort="high")` for extended reasoning across complex email threads.
-- **Safe Archiving**: Unwanted spam/promotions are archived (moved to All Mail) rather than permanently deleted.
+- **Safe Archiving**: Promotions still in the inbox are archived (moved to All Mail), up to 100 per run, never deleted. Spam is left in Spam.
 - **Token Management**: Automatic OAuth token refresh in `load_credentials()` and `get_tokens.py`.
 - **Security & Prompt Guard**: In `draft` mode, the default, the send tool does not exist: `send_reply` is registered only with `OPERATION_MODE=auto`, so no email can make the agent send mail. Draft mode is not read-only: the agent still creates drafts, removes stars and runs `archive_unwanted`. The prompt also tells the model to treat email content as untrusted data; that is an instruction, not a block, so `auto` is for mailboxes whose senders you trust.
 
@@ -89,7 +89,7 @@ python gmail_agent.py
 1. Fetch Starred Emails  ──►  Reads unread messages from starred threads
 2. Thread Context       ──►  Fetches full message history per thread
 3. Reason & Draft/Send  ──►  Sofia persona generates language-matched reply
-4. Unstar & Archive     ──►  Removes star flag & archives promotional spam
+4. Unstar & Archive     ──►  Removes star flag & archives inbox promotions
 5. Structured Result    ──►  Returns GmailResult(processed, replies, archived, summary)
 ```
 
