@@ -4,6 +4,7 @@
 
 from __future__ import annotations
 
+import asyncio
 import inspect
 import json
 import os
@@ -14,7 +15,7 @@ from unittest.mock import MagicMock
 import pytest
 
 from gmail_agent import GmailDependencies, GmailResult, gmail_agent
-from capabilities.gmail_tools import gmail_tools
+from capabilities.gmail_tools import archive_unwanted, gmail_tools
 from capabilities.sofia_persona import sofia_persona
 from capabilities.email_memory import email_memory
 
@@ -118,3 +119,29 @@ class TestOperationMode:
         res = _model_view_in_mode("auto")
         assert "send_reply" in res["tools"]
         assert "send_reply" in res["instructions"]
+
+
+class TestArchiveUnwanted:
+    def _run(self, listed):
+        service = MagicMock()
+        messages = service.users.return_value.messages.return_value
+        messages.list.return_value.execute.return_value = listed
+        out = asyncio.run(archive_unwanted(MagicMock(deps=MagicMock(service=service))))
+        return messages, out
+
+    def test_removes_inbox_from_inbox_promotions_only(self):
+        messages, out = self._run({"messages": [{"id": "a"}, {"id": "b"}]})
+        messages.list.assert_called_once_with(
+            userId="me", labelIds=["INBOX", "CATEGORY_PROMOTIONS"], maxResults=100
+        )
+        messages.batchModify.assert_called_once_with(
+            userId="me", body={"ids": ["a", "b"], "removeLabelIds": ["INBOX"]}
+        )
+        messages.modify.assert_not_called()
+        assert "Archived 2 " in out
+
+    def test_no_promotions_makes_no_change(self):
+        messages, out = self._run({})
+        messages.list.assert_called_once()
+        messages.batchModify.assert_not_called()
+        assert "Archived 0 " in out
