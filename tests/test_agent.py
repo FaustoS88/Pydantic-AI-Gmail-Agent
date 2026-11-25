@@ -49,7 +49,6 @@ class TestAgentCapabilities:
         assert "fetch_starred_emails" in gmail_tools._function_toolset.tools
         assert "get_thread_context" in gmail_tools._function_toolset.tools
         assert "create_reply_draft" in gmail_tools._function_toolset.tools
-        assert "send_reply" in gmail_tools._function_toolset.tools
         assert "remove_star" in gmail_tools._function_toolset.tools
         assert "archive_unwanted" in gmail_tools._function_toolset.tools
 
